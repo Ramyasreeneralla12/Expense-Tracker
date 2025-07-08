@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById("date").value = today;
+        }
+    </script>
+</head>
+<body onload="setTodayDate()">
+
+    <h1>💰 Expense Tracker</h1>
+
+    <!-- Filter -->
+    <form method="GET" action="/" class="filter-form">
+        <label for="filter">View Expenses For:</label>
+        <select name="filter" onchange="this.form.submit()">
+            <option value="all" {% if selected_filter == 'all' %}selected{% endif %}>All Time</option>
+            <option value="week" {% if selected_filter == 'week' %}selected{% endif %}>This Week</option>
+            <option value="month" {% if selected_filter == 'month' %}selected{% endif %}>This Month</option>
+            <option value="year" {% if selected_filter == 'year' %}selected{% endif %}>This Year</option>
+        </select>
+    </form>
+
+    <!-- Add Expense -->
+    <form action="/add" method="POST" class="add-form">
+        <input type="number" step="0.01" name="amount" placeholder="Amount (₹)" required>
+        <input type="date" name="date" id="date">
+        <input type="text" name="purpose" placeholder="Purpose (Optional)">
+        <button type="submit">Add Expense</button>
+    </form>
+
+    <!-- Display Total According to Filter -->
+    <h2>
+        {% if selected_filter == 'week' %}
+            Total Spent This Week: ₹{{ total }}
+        {% elif selected_filter == 'month' %}
+            Total Spent This Month: ₹{{ total }}
+        {% elif selected_filter == 'year' %}
+            Total Spent This Year: ₹{{ total }}
+        {% else %}
+            Total Spent (All Time): ₹{{ total }}
+        {% endif %}
+    </h2>
+
+    <!-- Expense Table -->
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Purpose</th>
+            <th>Amount (₹)</th>
+            <th>Action</th>
+        </tr>
+        {% for e in expenses %}
+        <tr>
+            <td>{{ e[2] }}</td>
+            <td>{{ e[3] or "N/A" }}</td>
+            <td>{{ e[1] }}</td>
+            <td><a href="/delete/{{ e[0] }}">❌</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>
