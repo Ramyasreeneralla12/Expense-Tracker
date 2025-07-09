@@ -78,6 +78,9 @@ def delete(expense_id):
     conn.commit()
     conn.close()
     return redirect('/')
+def home():
+    return "✅ Flask app is running on Render!"
+
 
 
 
