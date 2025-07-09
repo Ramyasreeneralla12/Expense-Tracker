@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
 from datetime import datetime, timedelta
+import os
 
 app = Flask(__name__)
 
@@ -78,6 +79,9 @@ def delete(expense_id):
     conn.close()
     return redirect('/')
 
-if __name__ == '__main__':
-    init_db()
-    app.run(debug=True)
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
