@@ -5,7 +5,8 @@ import os
 
 app = Flask(__name__)
 
-# Initialize database
+# ✅ Initialize the database on first request
+@app.before_first_request
 def init_db():
     conn = sqlite3.connect('expenses.db')
     c = conn.cursor()
@@ -20,7 +21,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Home page with filter
+# ✅ Home page with filter options
 @app.route('/')
 def index():
     filter_option = request.args.get('filter', 'all')
@@ -29,7 +30,6 @@ def index():
     conn = sqlite3.connect('expenses.db')
     c = conn.cursor()
 
-    # Filter logic
     if filter_option == 'week':
         start = today - timedelta(days=today.weekday())
         c.execute("SELECT * FROM expenses WHERE date >= ? ORDER BY date DESC", (start.isoformat(),))
@@ -55,7 +55,7 @@ def index():
 
     return render_template('index.html', expenses=expenses, total=total if total else 0, selected_filter=filter_option)
 
-# Add expense
+# ✅ Add expense route
 @app.route('/add', methods=['POST'])
 def add():
     amount = request.form['amount']
@@ -69,7 +69,7 @@ def add():
     conn.close()
     return redirect('/')
 
-# Delete expense
+# ✅ Delete expense route
 @app.route('/delete/<int:expense_id>')
 def delete(expense_id):
     conn = sqlite3.connect('expenses.db')
@@ -78,13 +78,13 @@ def delete(expense_id):
     conn.commit()
     conn.close()
     return redirect('/')
-def home():
+
+# ✅ Health check route
+@app.route('/health')
+def health():
     return "✅ Flask app is running on Render!"
 
-
-
-
+# ✅ Main block for Render deployment
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-
