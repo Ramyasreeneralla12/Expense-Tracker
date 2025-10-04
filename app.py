@@ -5,8 +5,7 @@ import os
 
 app = Flask(__name__)
 
-# ✅ Initialize the database on first request
-@app.before_first_request
+# A helper function to initialize the database if not already done
 def init_db():
     conn = sqlite3.connect('expenses.db')
     c = conn.cursor()
@@ -21,7 +20,22 @@ def init_db():
     conn.commit()
     conn.close()
 
-# ✅ Home page with filter options
+# We will call init_db either at startup (preferred) or lazily via before_request
+
+# Option 1: Initialize at startup
+with app.app_context():
+    init_db()
+
+# (If you prefer lazy initialization, comment out the above block and uncomment the below)
+
+# _init_done = False
+# @app.before_request
+# def ensure_db_initialized():
+#     global _init_done
+#     if not _init_done:
+#         init_db()
+#         _init_done = True
+
 @app.route('/')
 def index():
     filter_option = request.args.get('filter', 'all')
@@ -53,9 +67,11 @@ def index():
     total = c.fetchone()[0]
     conn.close()
 
-    return render_template('index.html', expenses=expenses, total=total if total else 0, selected_filter=filter_option)
+    return render_template('index.html',
+                           expenses=expenses,
+                           total=total if total else 0,
+                           selected_filter=filter_option)
 
-# ✅ Add expense route
 @app.route('/add', methods=['POST'])
 def add():
     amount = request.form['amount']
@@ -64,12 +80,12 @@ def add():
 
     conn = sqlite3.connect('expenses.db')
     c = conn.cursor()
-    c.execute("INSERT INTO expenses (amount, date, purpose) VALUES (?, ?, ?)", (amount, date, purpose))
+    c.execute("INSERT INTO expenses (amount, date, purpose) VALUES (?, ?, ?)",
+              (amount, date, purpose))
     conn.commit()
     conn.close()
     return redirect('/')
 
-# ✅ Delete expense route
 @app.route('/delete/<int:expense_id>')
 def delete(expense_id):
     conn = sqlite3.connect('expenses.db')
@@ -79,12 +95,10 @@ def delete(expense_id):
     conn.close()
     return redirect('/')
 
-# ✅ Health check route
 @app.route('/health')
 def health():
-    return "✅ Flask app is running on Render!"
+    return "✅ Flask app is running!"
 
-# ✅ Main block for Render deployment
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.environ.get("PORT", 1000))
     app.run(host="0.0.0.0", port=port)
